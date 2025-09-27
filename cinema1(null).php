@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="container-fluid">
     <a class="navbar-brand" href="index.php">
       <img src="pictures/gwapobibat1.png" alt="PELIKULA Logo" height="30" class="d-inline-block align-text-top me-2">
-      PELIKULA
+      PELIKULA Cinema app
     </a>
   </div>
 </nav>

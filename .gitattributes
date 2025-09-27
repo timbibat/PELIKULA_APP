@@ -1,0 +1,6 @@
+# Always use LF in repo, auto-convert to OS default in working copy
+* text=auto
+
+# Specific file rules (if needed)
+*.sh text eol=lf
+*.bat text eol=crlf
