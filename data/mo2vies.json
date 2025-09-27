@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "title": "Demon Slayer - Kimetsu no Yaiba - Infinity Castle",
+    "description": "Tanjiro and the Demon Slayer Corps prepare for the final battle inside the Infinity Castle.",
+    "duration": "2 hours 35 minutes",
+    "showtimes": ["10:00 AM", "1:00 PM", "4:00 PM", "7:00 PM"]
+  },
+  {
+    "id": 2,
+    "title": "The Conjuring: Last Rites",
+    "description": "The Warrens face their most terrifying case yet in the chilling conclusion to the saga.",
+    "duration": "2 hours 17 minutes",
+    "showtimes": ["11:00 AM", "2:00 PM", "5:00 PM", "8:00 PM"]
+  }
+]
