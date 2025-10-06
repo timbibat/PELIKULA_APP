@@ -1,10 +1,17 @@
 <?php
 session_start();
+require 'db.php';
 if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
     header("Location: admin_login.php");
     exit;
 }
 $admin_email = $_SESSION['admin_email'];
+
+// Fetch dashboard stats
+$total_movies = $pdo->query("SELECT COUNT(*) FROM tbl_movies")->fetchColumn();
+$total_bookings = $pdo->query("SELECT COUNT(*) FROM bookings")->fetchColumn();
+$total_users = $pdo->query("SELECT COUNT(*) FROM users WHERE is_admin=0")->fetchColumn();
+$new_replies = $pdo->query("SELECT COUNT(*) FROM replies WHERE is_seen=0")->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -186,22 +193,22 @@ $admin_email = $_SESSION['admin_email'];
       <div class="dashboard-cards">
         <div class="dashboard-card">
           <h5><i class="bi bi-film"></i> Total Movies</h5>
-          <span class="display-5">—</span>
+          <span class="display-5"><?= $total_movies ?></span>
           <small>Manage and add movies</small>
         </div>
         <div class="dashboard-card">
           <h5><i class="bi bi-ticket-perforated"></i> Total Bookings</h5>
-          <span class="display-5">—</span>
+          <span class="display-5"><?= $total_bookings ?></span>
           <small>All user bookings</small>
         </div>
         <div class="dashboard-card">
           <h5><i class="bi bi-people-fill"></i> Registered Users</h5>
-          <span class="display-5">—</span>
+          <span class="display-5"><?= $total_users ?></span>
           <small>Total accounts</small>
         </div>
         <div class="dashboard-card">
           <h5><i class="bi bi-chat-dots"></i> New Replies</h5>
-          <span class="display-5">—</span>
+          <span class="display-5"><?= $new_replies ?></span>
           <small>Unanswered user replies</small>
         </div>
       </div>
