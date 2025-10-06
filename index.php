@@ -158,96 +158,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['movie_id'])) {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
   <style>
-    /* THEME VARIABLES */
     :root {
-      /* Light mode */
+      --accent: #FF4500; /* Light mode: orange */
       --bg-main: #f7f8fa;
-      --bg-card: #ffffff;
+      --bg-card: #fff;
       --text-main: #1a1a22;
       --text-muted: #5a5a6e;
       --navbar-bg: #e9ecef;
       --navbar-text: #1a1a22;
       --footer-bg: #e9ecef;
-      --brand: #0d6efd;
-      --accent: #ffd700; /* gold */
+      --brand: #FF4500;
       --badge-bg: #6c757d;
       --seat-available-bg: #f3f5f9;
-      --seat-available-border: #9aa3ad;
-      --seat-selected-bg: #ffd700;
-      --seat-selected-text: #23272f;
+      --seat-available-border: #FF4500;
+      --seat-selected-bg: #FF4500;
+      --seat-selected-text: #fff;
       --seat-reserved-bg: #e63946;
-      --seat-reserved-text: #ffffff;
-      --btn-primary-bg: #0d6efd;
-      --btn-primary-text: #ffffff;
+      --seat-reserved-text: #fff;
+      --btn-primary-bg: #FF4500;
+      --btn-primary-text: #fff;
+      --toggle-btn-bg: #FF4500;
+      --toggle-btn-color: #fff;
+      --toggle-btn-border: #FF4500;
     }
     body.dark-mode {
-      /* Dark mode */
+      --accent: #0d6efd; /* Dark mode: blue */
       --bg-main: #10121a;
       --bg-card: #181a20;
       --text-main: #e6e9ef;
       --text-muted: #aab1b8;
       --navbar-bg: #23272f;
-      --navbar-text: #ffffff;
+      --navbar-text: #fff;
       --footer-bg: #181a20;
-      --brand: #ffd700;
-      --accent: #017cff;
+      --brand: #0d6efd;
       --badge-bg: #343a40;
       --seat-available-bg: #23272f;
-      --seat-available-border: #ffd700;
-      --seat-selected-bg: #ffd700;
-      --seat-selected-text: #23272f;
-      --seat-reserved-bg: #e63946;
-      --seat-reserved-text: #ffffff;
-      --btn-primary-bg: #ffd700;
-      --btn-primary-text: #23272f;
+      --seat-available-border: #0d6efd;
+      --seat-selected-bg: #0d6efd;
+      --seat-selected-text: #fff;
+      --seat-reserved-bg: #6c757d;
+      --seat-reserved-text: #fff;
+      --btn-primary-bg: #0d6efd;
+      --btn-primary-text: #fff;
+      --toggle-btn-bg: #23272f;
+      --toggle-btn-color: #0d6efd;
+      --toggle-btn-border: #0d6efd;
     }
-
-    /* GLOBAL */
     body { background: var(--bg-main) !important; color: var(--text-main); }
     .text-muted { color: var(--text-muted) !important; }
     .card { border-radius: 16px !important; background: var(--bg-card); color: var(--text-main); }
-    .card-title { font-family: 'Montserrat', sans-serif; font-weight: 700; }
+    .card-title { font-family: 'Montserrat', sans-serif; font-weight: 700; color: var(--accent) !important; }
     .card-img-fix, .card-img-top { height: 420px; object-fit: cover; border-bottom:4px solid var(--accent); }
-
-    /* NAVBAR */
     .navbar { background: var(--navbar-bg) !important; box-shadow:0 2px 12px rgba(0,0,0,0.25); }
-    .navbar .navbar-brand, .navbar .nav-link, .navbar .navbar-text { color: var(--navbar-text) !importanT; }
+    .navbar .navbar-brand, .navbar .nav-link, .navbar .navbar-text { color: var(--navbar-text) !important; }
     .navbar .navbar-brand { color: var(--accent) !important; }
-
-    /* HERO */
     .hero-section { box-shadow: 0 4px 32px 0 rgba(0,0,0,0.2); }
-
-    /* AUTH */
     .center-auth { display: flex; justify-content: center; align-items: center; min-height: 60vh; }
-
-    /* SHOWTIME BUTTONS */
     .showtime-btn[disabled] { opacity: 0.6; cursor: not-allowed; text-decoration: line-through; }
-
-    /* TRAILER */
     .locked-video { pointer-events: none; user-select: none; }
-
-    /* MESSAGES */
     .error { color: var(--seat-reserved-bg); text-align: center; margin-bottom: 16px; }
-
-    /* SEATS */
     .seat-map { display: grid; grid-template-columns: repeat(10, 32px); gap: 8px; margin: 0 auto 12px auto; width: max-content;}
     .seat-btn { width: 32px; height: 32px; font-size: 0.75rem; border-radius: 6px; border: 1px solid var(--seat-available-border); cursor: pointer; }
     .seat-btn.available { background: var(--seat-available-bg) !important; color: var(--accent) !important; }
     .seat-btn.selected { background: var(--seat-selected-bg) !important; color: var(--seat-selected-text) !important; border-color: var(--seat-selected-bg) !important; }
     .seat-btn.reserved { background: var(--seat-reserved-bg) !important; color: var(--seat-reserved-text) !important; border-color: var(--seat-reserved-bg) !important; cursor: not-allowed; }
-
-    /* BUTTONS */
-    .btn-brand { background: var(--btn-primary-bg) !important; color: var(--btn-primary-text) !important; border: none; font-weight: 700; }
-    .btn-accent { background: var(--accent) !important; color: #23272f !important; font-weight: 700; border: none; }
-
-    /* BADGES */
+    .btn-brand, .btn-accent, .btn-warning, .btn-accent:focus, .btn-brand:focus { background: var(--btn-primary-bg) !important; color: var(--btn-primary-text) !important; border: none; font-weight: 700; }
+    .btn-accent { background: var(--accent) !important; color: #fff !important; }
     .badge { border-radius: 10px; }
     .badge.bg-secondary { background: var(--badge-bg) !important; }
-
-    /* FOOTER */
     footer { background: var(--footer-bg); color: var(--brand); }
+    #toggleModeBtn {
+      background: var(--toggle-btn-bg) !important;
+      color: var(--toggle-btn-color) !important;
+      border: 2px solid var(--toggle-btn-border) !important;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+    }
+    #toggleModeBtn:focus {
+      outline: 2px solid var(--toggle-btn-border);
+    }
   </style>
 </head>
 <body>
@@ -257,7 +246,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['movie_id'])) {
       <img src="pictures/gwapobibat1.png" alt="Logo" height="34" class="me-2">
       PELIKULA
     </a>
-
     <div class="d-flex ms-auto align-items-center">
       <button id="toggleModeBtn" class="btn btn-outline-warning me-3" title="Toggle light/dark mode">
         <i class="bi bi-moon-stars" id="modeIcon"></i>
@@ -381,7 +369,7 @@ if (!isset($_SESSION['access_token']) || empty($_SESSION['user_email'])) {
                         }
                       ?>
                     </div>
-                    <small class="text-muted">Red = reserved, Gold = selected, Light = available</small>
+                    <small class="text-muted">Gray = Reserved, Gold = Selected, Light = Available</small>
                   </div>
                 <?php endif; ?>
 
@@ -500,11 +488,8 @@ if (!isset($_SESSION['access_token']) || empty($_SESSION['user_email'])) {
     <p class="mb-0">© <?=date('Y')?> Pelikula Cinema, Inc</p>
   </div>
 </footer>
-
 <script>
-// THEME TOGGLE
 function setMode(mode) {
-  // mode: 'dark' or 'light'
   const dark = (mode === 'dark');
   if (dark) {
     document.body.classList.add('dark-mode');
@@ -516,13 +501,9 @@ function setMode(mode) {
     localStorage.setItem('theme', 'light');
   }
 }
-
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize theme from localStorage (default: dark)
   const theme = localStorage.getItem('theme') || 'dark';
   setMode(theme);
-
-  // Toggle on click
   const toggleBtn = document.getElementById('toggleModeBtn');
   if (toggleBtn) {
     toggleBtn.addEventListener('click', function() {
@@ -532,7 +513,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
