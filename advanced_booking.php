@@ -33,19 +33,14 @@ function get_reserved_seats($pdo, $movie_id, $showdate, $showtime) {
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-// Set booking window (e.g. next 30 days)
 $maxDaysAhead = 30;
-
-// Always take values from GET first, fallback to POST
 $day = $_GET['day'] ?? $_POST['day'] ?? '';
 $month = $_GET['month'] ?? $_POST['month'] ?? '';
 $year = $_GET['year'] ?? $_POST['year'] ?? '';
 $showtime_selected = $_GET['showtime'] ?? $_POST['showtime'] ?? '';
 $showdate = ($day && $month && $year) ? sprintf('%04d-%02d-%02d', $year, $month, $day) : '';
-
 $selected_seats = array_filter(explode(',', $_POST['selected_seats'] ?? ''));
 
-// Render reserved seats if all values are selected
 $reserved_seats = [];
 if ($showdate && $showtime_selected) {
     $reserved_seats = get_reserved_seats($pdo, $lockedMovie['id'], $showdate, $showtime_selected);
@@ -121,7 +116,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Generate options for days, months, years
 $now = time();
 $years = [date('Y'), date('Y', strtotime('+1 year'))];
 $months = range(1,12);
@@ -133,25 +127,98 @@ $days = range(1,31);
   <meta charset="utf-8">
   <title>Advanced Booking - <?= htmlspecialchars($lockedMovie['title']) ?> - Pelikula</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    body { padding-bottom: 50px; }
+    :root {
+      --accent: #FF4500;
+      --bg-main: #f7f8fa;
+      --bg-card: #fff;
+      --text-main: #1a1a22;
+      --toggle-btn-bg: #FF4500;
+      --toggle-btn-color: #fff;
+      --toggle-btn-border: #FF4500;
+    }
+    body.dark-mode {
+      --accent: #0d6efd;
+      --bg-main: #10121a;
+      --bg-card: #181a20;
+      --text-main: #e6e9ef;
+      --toggle-btn-bg: #23272f;
+      --toggle-btn-color: #0d6efd;
+      --toggle-btn-border: #0d6efd;
+    }
+    body { background: var(--bg-main); color: var(--text-main);}
+    .navbar { background: var(--bg-card) !important; box-shadow:0 2px 12px rgba(0,0,0,0.25);}
+    .navbar .navbar-brand { color: var(--accent) !important; }
+    .navbar-profile-pic { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
+    #toggleModeBtn {
+      background: var(--toggle-btn-bg) !important;
+      color: var(--toggle-btn-color) !important;
+      border: 2px solid var(--toggle-btn-border) !important;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+    }
+    #toggleModeBtn:focus {
+      outline: 2px solid var(--toggle-btn-border);
+    }
+    .card { border-radius: 16px !important; background: var(--bg-card); color: var(--text-main);}
+    .card-title { font-weight:700; color:var(--accent);}
     .error { color: red; text-align: center; margin-bottom: 16px; }
     .success { color: green; text-align: center; margin-bottom: 16px; }
     .seat-map { display: grid; grid-template-columns: repeat(10, 32px); gap: 8px; margin: 0 auto 12px auto; width: max-content;}
-    .seat-btn { width: 32px; height: 32px; font-size: 0.75rem; border-radius: 6px; border: 1px solid #888; cursor: pointer; }
-    .seat-btn.available { background: #f5f5f5; }
-    .seat-btn.selected { background: #017cff; color: #fff; border-color: #017cff; }
+    .seat-btn { width: 32px; height: 32px; font-size: 0.75rem; border-radius: 6px; border: 1px solid var(--accent); cursor: pointer; }
+    .seat-btn.available { background: #f5f5f5; color: var(--accent);}
+    .seat-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent);}
     .seat-btn.reserved { background: #e63946; color: #fff; cursor: not-allowed; border-color: #e63946;}
   </style>
+  <script>
+    function setMode(mode) {
+      const dark = (mode === 'dark');
+      if (dark) {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('theme', 'dark');
+        document.getElementById('modeIcon').className = 'bi bi-brightness-high';
+      } else {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('theme', 'light');
+        document.getElementById('modeIcon').className = 'bi bi-moon-stars';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      const theme = localStorage.getItem('theme') || 'light';
+      setMode(theme);
+      const toggleBtn = document.getElementById('toggleModeBtn');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+          const isDark = document.body.classList.contains('dark-mode');
+          setMode(isDark ? 'light' : 'dark');
+        });
+      }
+    });
+  </script>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg mb-4" style="padding: 1.5rem 1rem; background-color: #c8d8e4;">
+<nav class="navbar navbar-expand-lg sticky-top">
   <div class="container-fluid">
-    <a class="navbar-brand" href="index.php">
-      <img src="pictures/gwapobibat1.png" alt="PELIKULA Logo" height="30" class="d-inline-block align-text-top me-2">
+    <a class="navbar-brand fw-bold" href="index.php" style="color:var(--accent);">
+      <img src="pictures/gwapobibat1.png" alt="PELIKULA Logo" height="34" class="me-2">
       PELIKULA
     </a>
-    <span class="navbar-text">Advanced Booking: <?= htmlspecialchars($lockedMovie['title']) ?></span>
+    <div class="d-flex ms-auto align-items-center">
+      <button id="toggleModeBtn" class="btn btn-outline-warning me-3" title="Toggle light/dark mode">
+        <i class="bi bi-moon-stars" id="modeIcon"></i>
+      </button>
+      <?php if (isset($_SESSION['user_email'])): ?>
+        <?php
+          $displayName = explode('@', $_SESSION['user_email'])[0];
+          $profileImg = !empty($_SESSION['user_picture'])
+              ? htmlspecialchars($_SESSION['user_picture'])
+              : "https://ui-avatars.com/api/?name=" . urlencode($displayName) . "&background=0D8ABC&color=fff";
+        ?>
+        <a href="profile.php" title="Go to Profile">
+          <img src="<?php echo $profileImg; ?>" class="navbar-profile-pic" alt="Profile">
+        </a>
+      <?php endif; ?>
+    </div>
   </div>
 </nav>
 <div class="container d-flex justify-content-center">
@@ -162,7 +229,6 @@ $days = range(1,31);
         <div class="error"><?= htmlspecialchars($errorMsg) ?></div>
       <?php endif; ?>
 
-      <!-- Mini GET form for date/showtime selection -->
       <form method="get" id="dateShowtimeForm">
         <input type="hidden" name="id" value="<?= htmlspecialchars($lockedMovieId) ?>">
         <div class="row g-2 mb-3">
@@ -206,8 +272,6 @@ $days = range(1,31);
           </select>
         </div>
       </form>
-
-      <!-- Main booking form (POST) -->
       <?php if ($day && $month && $year && $showtime_selected): ?>
       <form action="" method="POST" id="advBookingForm">
         <input type="hidden" name="id" value="<?= htmlspecialchars($lockedMovie['id']) ?>">
@@ -232,10 +296,9 @@ $days = range(1,31);
               }
             ?>
           </div>
-          <small class="text-muted">Red = reserved, Blue = selected, Gray = available</small>
+          <small class="text-muted">Red = reserved, <span style="color:var(--accent);">Accent</span> = selected, Gray = available</small>
           <input type="hidden" name="selected_seats" id="selected_seats" value="<?= htmlspecialchars(implode(',', $selected_seats)) ?>">
         </div>
-        <input type="hidden" name="seat" value="General Admission">
         <div class="row g-3 mb-3">
           <div class="col">
             <input type="text" name="first_name" class="form-control only-letters" placeholder="First name" required>
@@ -262,7 +325,7 @@ $days = range(1,31);
           </span>
         </h4>
         <div class="col-12 mt-3">
-          <button type="submit" class="btn btn-success">Book In Advance</button>
+          <button type="submit" class="btn" style="background:var(--accent);color:#fff;font-weight:600;">Book In Advance</button>
         </div>
       </form>
       <?php endif; ?>

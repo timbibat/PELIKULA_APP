@@ -40,14 +40,58 @@ $bookings = $stmt->fetchAll();
     <meta charset="utf-8">
     <title>Profile - Pelikula</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
+    :root {
+      --accent: #FF4500;
+      --bg-main: #f7f8fa;
+      --bg-card: #fff;
+      --text-main: #1a1a22;
+      --text-muted: #5a5a6e;
+      --navbar-bg: #e9ecef;
+      --navbar-text: #1a1a22;
+      --footer-bg: #e9ecef;
+      --brand: #FF4500;
+      --badge-bg: #6c757d;
+      --toggle-btn-bg: #FF4500;
+      --toggle-btn-color: #fff;
+      --toggle-btn-border: #FF4500;
+    }
+    body.dark-mode {
+      --accent: #0d6efd;
+      --bg-main: #10121a;
+      --bg-card: #181a20;
+      --text-main: #e6e9ef;
+      --text-muted: #aab1b8;
+      --navbar-bg: #23272f;
+      --navbar-text: #fff;
+      --footer-bg: #181a20;
+      --brand: #0d6efd;
+      --badge-bg: #343a40;
+      --toggle-btn-bg: #23272f;
+      --toggle-btn-color: #0d6efd;
+      --toggle-btn-border: #0d6efd;
+    }
     body {
-        background: linear-gradient(120deg, #f8fafc 0%, #e2eafc 100%);
+        background: var(--bg-main);
         min-height: 100vh;
+        color: var(--text-main);
+    }
+    .navbar { background: var(--navbar-bg) !important; box-shadow:0 2px 12px rgba(0,0,0,0.25);}
+    .navbar .navbar-brand { color: var(--accent) !important; }
+    .navbar-profile-pic { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
+    #toggleModeBtn {
+      background: var(--toggle-btn-bg) !important;
+      color: var(--toggle-btn-color) !important;
+      border: 2px solid var(--toggle-btn-border) !important;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+    }
+    #toggleModeBtn:focus {
+      outline: 2px solid var(--toggle-btn-border);
     }
     .profile-header {
-        background: #c8d8e4;
-        color: #000000;
+        background: var(--bg-card);
+        color: var(--text-main);
         border-radius: 12px;
         padding: 2rem 1.5rem 1rem 1.5rem;
         box-shadow: 0 3px 12px rgba(0,0,0,0.07);
@@ -62,14 +106,10 @@ $bookings = $stmt->fetchAll();
         font-weight: 700;
     }
     .profile-header small {
-        color: #000000;
-    }
-    .profile-header .btn-container {
-        display: flex;
-        gap: 8px;
+        color: var(--text-muted);
     }
     .goback-btn {
-        background: #017cff;
+        background: var(--accent);
         color: #fff;
         border-radius: 8px;
         border: none;
@@ -80,7 +120,7 @@ $bookings = $stmt->fetchAll();
         transition: background 0.2s;
     }
     .goback-btn:hover {
-        background: #015ecb;
+        background: #d13d00;
         color: #fff;
     }
     .logout-btn {
@@ -97,7 +137,7 @@ $bookings = $stmt->fetchAll();
         background: #b81f2d;
     }
     .table thead {
-        background: #343a40;
+        background: var(--accent);
         color: #fff;
     }
     .table-bordered {
@@ -111,9 +151,60 @@ $bookings = $stmt->fetchAll();
         font-style: italic;
         padding: 2rem 0;
     }
+    .table td, .table th { vertical-align: middle; }
     </style>
+    <script>
+    // UI dark/light mode support
+    function setMode(mode) {
+      const dark = (mode === 'dark');
+      if (dark) {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('theme', 'dark');
+        document.getElementById('modeIcon').className = 'bi bi-brightness-high';
+      } else {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('theme', 'light');
+        document.getElementById('modeIcon').className = 'bi bi-moon-stars';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      const theme = localStorage.getItem('theme') || 'light';
+      setMode(theme);
+      const toggleBtn = document.getElementById('toggleModeBtn');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+          const isDark = document.body.classList.contains('dark-mode');
+          setMode(isDark ? 'light' : 'dark');
+        });
+      }
+    });
+    </script>
 </head>
 <body>
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="index.php" style="color:var(--accent);">
+      <img src="pictures/gwapobibat1.png" alt="PELIKULA Logo" height="34" class="me-2">
+      PELIKULA
+    </a>
+    <div class="d-flex ms-auto align-items-center">
+      <button id="toggleModeBtn" class="btn btn-outline-warning me-3" title="Toggle light/dark mode">
+        <i class="bi bi-moon-stars" id="modeIcon"></i>
+      </button>
+      <?php if (isset($_SESSION['user_email'])): ?>
+        <?php
+          $displayName = explode('@', $_SESSION['user_email'])[0];
+          $profileImg = !empty($_SESSION['user_picture'])
+              ? htmlspecialchars($_SESSION['user_picture'])
+              : "https://ui-avatars.com/api/?name=" . urlencode($displayName) . "&background=0D8ABC&color=fff";
+        ?>
+        <a href="profile.php" title="Go to Profile">
+          <img src="<?php echo $profileImg; ?>" class="navbar-profile-pic" alt="Profile">
+        </a>
+      <?php endif; ?>
+    </div>
+  </div>
+</nav>
 <div class="container mt-5" style="max-width:900px;">
     <div class="profile-header">
         <div>
@@ -125,9 +216,9 @@ $bookings = $stmt->fetchAll();
             <a href="logout.php" class="logout-btn">Logout</a>
         </div>
     </div>
-    <div class="card shadow-sm mb-5">
+    <div class="card shadow-sm mb-5" style="background:var(--bg-card);">
         <div class="card-body">
-            <h4 class="mb-4" style="font-weight:600; color:#343a40;">Your Bookings</h4>
+            <h4 class="mb-4" style="font-weight:600; color:var(--accent);">Your Bookings</h4>
             <?php if (count($bookings) === 0): ?>
                 <div class="no-bookings">You don't have any bookings yet.</div>
             <?php else: ?>
@@ -150,7 +241,7 @@ $bookings = $stmt->fetchAll();
                     <?php foreach ($bookings as $b): ?>
                         <tr>
                             <td><?php echo $b['id']; ?></td>
-                            <td><?php echo htmlspecialchars($b['movie_title'] ?? 'N/A'); ?></td>
+                            <td><span style="color:var(--accent);font-weight:600;"><?php echo htmlspecialchars($b['movie_title'] ?? 'N/A'); ?></span></td>
                             <td><?php echo htmlspecialchars($b['showdate']); ?></td>
                             <td><?php echo htmlspecialchars($b['showtime']); ?></td>
                             <td><?php echo htmlspecialchars($b['seat']); ?></td>
@@ -162,7 +253,7 @@ $bookings = $stmt->fetchAll();
                               <?php elseif ($b['status'] === "Cancelled"): ?>
                                 <span style="color: red; font-weight: bold;">Cancelled</span>
                               <?php else: ?>
-                                <span style="color: blue;">Upcoming</span>
+                                <span style="color: var(--accent);font-weight:600;">Upcoming</span>
                               <?php endif; ?>
                             </td>
                             <td>
@@ -183,6 +274,5 @@ $bookings = $stmt->fetchAll();
         </div>
     </div>
 </div>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </body>
 </html>
