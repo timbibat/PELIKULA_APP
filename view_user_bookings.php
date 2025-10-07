@@ -16,7 +16,7 @@ $pdo->query("
       AND NOW() > STR_TO_DATE(CONCAT(showdate, ' ', showtime), '%Y-%m-%d %l:%i %p')
 ");
 
-// Fetch all bookings (always show b.email, even if no matching user exists)
+// Fetch all bookings (show movie title instead of id)
 $stmt = $pdo->query("
     SELECT 
         b.id AS booking_id,
@@ -24,6 +24,7 @@ $stmt = $pdo->query("
         u.email AS user_email,
         u.id AS user_id,
         b.movie_id,
+        m.title AS movie_title,
         b.showdate,
         b.showtime,
         b.seat,
@@ -32,6 +33,7 @@ $stmt = $pdo->query("
         b.status
     FROM bookings b
     LEFT JOIN users u ON b.email = u.email
+    LEFT JOIN tbl_movies m ON b.movie_id = m.id
     ORDER BY b.booked_at DESC
 ");
 $bookings = $stmt->fetchAll();
@@ -306,7 +308,8 @@ $admin_email = $_SESSION['admin_email'];
                   <i class="bi bi-person-circle icon"></i><?= $b['user_email'] ? htmlspecialchars($b['user_email']) : '—'; ?>
                 </div>
                 <div class="booking-detail">
-                  <i class="bi bi-film icon"></i>Movie ID: <?= htmlspecialchars($b['movie_id']); ?>
+                  <i class="bi bi-film icon"></i>
+                  <?= htmlspecialchars($b['movie_title'] ?? 'N/A'); ?>
                 </div>
                 <div class="booking-detail">
                   <i class="bi bi-calendar-event icon"></i><?= htmlspecialchars($b['showdate']); ?> &nbsp;

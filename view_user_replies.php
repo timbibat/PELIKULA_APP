@@ -93,7 +93,7 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
                 : "https://ui-avatars.com/api/?name=" . urlencode(explode('@', $reply['user_email'])[0]) . "&background=FF4500&color=fff";
             $margin_left = $level * 36;
             ?>
-            <div class="reply-card card mb-2 shadow-sm" style="margin-left:<?= $margin_left ?>px; border-left: 6px solid <?= $is_admin ? '#0d6efd' : '#FF4500' ?>">
+            <div class="reply-card card mb-2 shadow-sm" style="margin-left:<?= $margin_left ?>px; border-left: 6px solid <?= $is_admin ? 'var(--accent)' : '#FF4500' ?>">
                 <div class="card-body py-3 px-3">
                     <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap">
                         <div class="d-flex align-items-center flex-wrap">
@@ -117,7 +117,7 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
                     <div class="reply-message mb-2" style="white-space:pre-line;"><?= htmlspecialchars($reply['message']) ?></div>
                     <?php if (!$is_admin): ?>
                         <div class="d-flex flex-wrap gap-2 mt-2">
-                            <button class="btn btn-sm btn-primary" onclick="showReplyForm(<?= $reply['reply_id'] ?>)">
+                            <button class="btn btn-sm btn-accent" onclick="showReplyForm(<?= $reply['reply_id'] ?>)">
                                 <i class="bi bi-reply"></i> Reply
                             </button>
                             <!-- Reply form -->
@@ -157,7 +157,44 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
       --toggle-btn-bg: #FF4500;
       --toggle-btn-color: #fff;
       --toggle-btn-border: #FF4500;
+      --btn-accent-bg: #FF4500;
+      --btn-accent-text: #fff;
     }
+
+    body.dark-mode .accordion-item,
+    body.dark-mode .accordion-button,
+    body.dark-mode .accordion-header,
+    body.dark-mode .accordion-collapse,
+    body.dark-mode .accordion-body {
+        background: #23272f !important;
+        color: var(--text-main) !important;
+        border-color: #23272f !important;
+    }
+
+    body.dark-mode .accordion-button:not(.collapsed) {
+        background: var(--accent) !important;
+        color: #fff !important;
+    }
+
+    body.dark-mode .accordion-item {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+
+    body.dark-mode .badge.bg-secondary,
+    body.dark-mode .badge.bg-info {
+        /* Make sure badges look good in dark mode */
+        background: #0d6efd !important;
+        color: #fff !important;
+    }
+
+    body.dark-mode .badge.bg-secondary {
+        background: #6c757d !important;
+    }
+
+    body.dark-mode .badge.bg-info {
+        background: #10c2fb !important;
+    }
+
     body.dark-mode {
       --accent: #0d6efd;
       --bg-main: #10121a;
@@ -170,16 +207,20 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
       --toggle-btn-bg: #23272f;
       --toggle-btn-color: #0d6efd;
       --toggle-btn-border: #0d6efd;
+      --btn-accent-bg: #0d6efd;
+      --btn-accent-text: #fff;
     }
     body { background: var(--bg-main); color: var(--text-main);}
     .navbar { background: var(--navbar-bg) !important; box-shadow:0 2px 12px rgba(0,0,0,0.25);}
-    .navbar .navbar-brand { color: var(--accent) !important; }
+    .navbar .navbar-brand { color: var(--accent) !important; font-weight: bold; }
     .navbar-profile-pic { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
     #toggleModeBtn {
       background: var(--toggle-btn-bg) !important;
       color: var(--toggle-btn-color) !important;
       border: 2px solid var(--toggle-btn-border) !important;
       transition: background 0.2s, color 0.2s, border 0.2s;
+      border-radius: 10px;
+      font-size: 1.2rem;
     }
     #toggleModeBtn:focus {
       outline: 2px solid var(--toggle-btn-border);
@@ -216,20 +257,47 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
     .dashboard-main {
       padding: 2.5rem 2rem;
       min-height: 100vh;
+      background: var(--bg-main);
     }
     .reply-card.card {
       border-radius: 16px !important;
       background: var(--bg-card);
       word-break: break-word;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: none;
     }
     .reply-message {
       font-size: 1.1rem;
       color: var(--text-main);
       margin-bottom: 0.4rem;
     }
+    .btn-accent {
+      background: var(--btn-accent-bg) !important;
+      color: var(--btn-accent-text) !important;
+      font-weight: 600;
+      font-size: 1.01em;
+      border-radius: 8px;
+      border: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-accent:hover, .btn-accent:focus {
+      background: #d13d00 !important;
+      color: #fff !important;
+    }
     .accordion-button:not(.collapsed), .accordion-button:focus {
       background: var(--accent) !important;
       color: #fff;
+    }
+    .accordion-item {
+      border-radius: 12px;
+      margin-bottom: 0.9rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      border: none;
+    }
+    .accordion-header .badge {
+      font-size: 1em;
+      padding: 5px 12px;
+      border-radius: 8px;
     }
     /* Responsive styles */
     @media (max-width:1200px) {
@@ -269,6 +337,7 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
       .main-row {
         flex-direction: column;
       }
+      .accordion-header .badge { font-size: 0.96em; padding: 4px 8px;}
     }
     </style>
     <script>
@@ -303,7 +372,7 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
 <body>
 <nav class="navbar navbar-expand-lg sticky-top">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="admin_dashboard.php" style="color:var(--accent);">
+    <a class="navbar-brand fw-bold" href="admin_dashboard.php">
       <img src="pictures/gwapobibat1.png" alt="PELIKULA Logo" height="34" class="me-2">
       Pelikula Admin
     </a>
@@ -336,13 +405,13 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
     </nav>
     <!-- Main Content -->
     <main class="col-lg-10 col-md-9 dashboard-main">
-      <h2 class="mb-4" style="color:var(--accent);">User Replies by Booking</h2>
+      <h2 class="mb-4" style="color:var(--accent);font-weight:700;">User Replies by Booking</h2>
       <?php if (empty($replies_by_booking)): ?>
           <div class="alert alert-info">No replies found.</div>
       <?php else: ?>
           <div class="accordion" id="bookingAccordion">
               <?php foreach ($replies_by_booking as $booking_id => $booking_replies): ?>
-              <div class="accordion-item mb-3">
+              <div class="accordion-item">
                   <h2 class="accordion-header" id="heading<?= $booking_id ?>">
                       <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $booking_id ?>" aria-expanded="false" aria-controls="collapse<?= $booking_id ?>">
                           Booking ID: <?= htmlspecialchars($booking_id) ?> 
