@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Admin Login - Pelikula</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
@@ -54,6 +55,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       --toggle-btn-color: #0d6efd;
       --toggle-btn-border: #0d6efd;
     }
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
     body { background: var(--bg-main); color: var(--text-main); }
     .navbar { background: var(--navbar-bg) !important; box-shadow:0 2px 12px rgba(0,0,0,0.25);}
     .navbar .navbar-brand { color: var(--accent) !important; }
@@ -67,6 +72,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       outline: 2px solid var(--toggle-btn-border);
     }
     .card { background: var(--bg-card); color: var(--text-main);}
+    .login-container {
+      max-width: 400px;
+      width: 100%;
+      margin: 80px auto 0 auto;
+      padding: 0 1rem;
+    }
+    @media (max-width: 600px) {
+      .login-container {
+        max-width: 98vw;
+        padding: 0 0.3rem;
+        margin-top: 40px;
+      }
+      .card {
+        padding: 0.5rem;
+      }
+      h4.mb-3 {
+        font-size: 1.4rem;
+      }
+      .form-label {
+        font-size: 0.98rem;
+      }
+      .btn, .btn-link {
+        font-size: 1rem;
+      }
+    }
     </style>
     <script>
     function setMode(mode) {
@@ -108,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   </div>
 </nav>
-    <div class="container" style="max-width: 400px; margin-top: 80px;">
+    <div class="login-container">
         <div class="card shadow">
             <div class="card-body">
                 <h4 class="mb-3" style="color:var(--accent);">Admin Login</h4>
