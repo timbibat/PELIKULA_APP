@@ -11,13 +11,20 @@ $admin_email = $_SESSION['admin_email'];
 $total_movies = $pdo->query("SELECT COUNT(*) FROM tbl_movies")->fetchColumn();
 $total_bookings = $pdo->query("SELECT COUNT(*) FROM bookings")->fetchColumn();
 $total_users = $pdo->query("SELECT COUNT(*) FROM users WHERE is_admin=0")->fetchColumn();
-$new_replies = $pdo->query("SELECT COUNT(*) FROM replies WHERE is_seen=0")->fetchColumn();
+$new_replies = $pdo->query("
+  SELECT COUNT(*) FROM replies r
+  WHERE (r.user_id IS NOT NULL OR LOWER(r.email) != 'admin@pelikulacinema.com')
+    AND NOT EXISTS (
+      SELECT 1 FROM replies a WHERE a.parent_reply_id = r.id AND LOWER(a.email) = 'admin@pelikulacinema.com'
+    )
+")->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard - Pelikula</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
@@ -178,9 +185,9 @@ $new_replies = $pdo->query("SELECT COUNT(*) FROM replies WHERE is_seen=0")->fetc
   </div>
 </nav>
 <div class="container-fluid">
-  <div class="row">
+  <div class="row flex-wrap">
     <!-- Sidebar -->
-    <nav class="col-lg-2 col-md-3 dashboard-sidebar d-flex flex-column">
+    <nav class="col-lg-2 col-md-3 dashboard-sidebar d-flex flex-column flex-md-column flex-lg-column flex-row flex-wrap">
       <a href="admin_dashboard.php" class="nav-link active"><i class="bi bi-speedometer2"></i> Dashboard</a>
       <a href="view_user_bookings.php" class="nav-link"><i class="bi bi-ticket-detailed"></i> User Bookings</a>
       <a href="view_user_replies.php" class="nav-link"><i class="bi bi-chat-dots"></i> User Replies</a>

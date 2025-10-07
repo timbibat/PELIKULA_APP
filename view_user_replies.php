@@ -80,12 +80,10 @@ function isNewReply($reply) {
 // Helper to recursively display threaded replies for a single booking
 function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
     global $pdo;
-    // Group replies by parent
     $by_parent = [];
     foreach ($replies as $r) {
         $by_parent[$r['parent_reply_id'] ?? 0][] = $r;
     }
-    // Recursive display
     if (isset($by_parent[$parent_id])) {
         foreach ($by_parent[$parent_id] as $reply) {
             $is_admin = (strtolower($reply['user_email']) === 'admin@pelikulacinema.com');
@@ -233,6 +231,9 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
         });
       }
     });
+    function showReplyForm(replyId) {
+        document.getElementById('reply-form-' + replyId).style.display = 'block';
+    }
     </script>
 </head>
 <body>
@@ -262,14 +263,12 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
 </nav>
 <div class="container-fluid">
   <div class="row">
-    <!-- Sidebar -->
     <nav class="col-lg-2 col-md-3 dashboard-sidebar d-flex flex-column">
       <a href="admin_dashboard.php" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
       <a href="view_user_bookings.php" class="nav-link"><i class="bi bi-ticket-detailed"></i> User Bookings</a>
       <a href="view_user_replies.php" class="nav-link active"><i class="bi bi-chat-dots"></i> User Replies</a>
       <a href="logout.php" class="nav-link text-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
     </nav>
-    <!-- Main Content -->
     <main class="col-lg-10 col-md-9 dashboard-main">
       <div class="container mt-3">
         <h2 class="mb-4" style="color:var(--accent);">User Replies by Booking</h2>
@@ -311,10 +310,5 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-function showReplyForm(replyId) {
-    document.getElementById('reply-form-' + replyId).style.display = 'block';
-}
-</script>
 </body>
 </html>
