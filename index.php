@@ -218,11 +218,97 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['movie_id'])) {
     .showtime-btn[disabled] { opacity: 0.6; cursor: not-allowed; text-decoration: line-through; }
     .locked-video { pointer-events: none; user-select: none; }
     .error { color: var(--seat-reserved-bg); text-align: center; margin-bottom: 16px; }
-    .seat-map { display: grid; grid-template-columns: repeat(10, 32px); gap: 8px; margin: 0 auto 12px auto; width: max-content;}
-    .seat-btn { width: 32px; height: 32px; font-size: 0.75rem; border-radius: 6px; border: 1px solid var(--seat-available-border); cursor: pointer; }
-    .seat-btn.available { background: var(--seat-available-bg) !important; color: var(--accent) !important; }
-    .seat-btn.selected { background: var(--seat-selected-bg) !important; color: var(--seat-selected-text) !important; border-color: var(--seat-selected-bg) !important; }
-    .seat-btn.reserved { background: var(--seat-reserved-bg) !important; color: var(--seat-reserved-text) !important; border-color: var(--seat-reserved-bg) !important; cursor: not-allowed; }
+    .seat-map {
+      display: grid;
+      grid-template-columns: repeat(10, 44px);
+      gap: 15px;
+      margin: 0 auto 18px auto;
+      width: max-content;
+      justify-content: center;
+      align-items: center;
+      padding: 18px 8px;
+      background: transparent;
+    }
+
+    .seat-btn {
+      width: 44px;
+      height: 44px;
+      font-size: 1.08rem;
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-weight: 700;
+      border-radius: 50%;
+      border: 2.5px solid var(--seat-available-border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 
+        background 0.17s,
+        color 0.17s,
+        border-color 0.17s,
+        box-shadow 0.22s;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+      outline: none;
+      position: relative;
+      letter-spacing: 0.05em;
+      user-select: none;
+    }
+    .seat-btn.available {
+      background: linear-gradient(120deg, #f7f8fa 85%, #ffe0d4 100%) !important;
+      color: var(--accent) !important;
+      border-color: var(--accent);
+    }
+    .seat-btn.available:hover, .seat-btn.available:focus {
+      background: #fff3ed !important;
+      color: var(--accent) !important;
+      border-color: var(--accent);
+      box-shadow: 0 0 10px 2px #ffdab9;
+    }
+    .seat-btn.selected {
+      background: linear-gradient(120deg, var(--accent) 75%, #ff7a3e 100%) !important;
+      color: #fff !important;
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 12px 2px var(--accent), 0 2px 12px rgba(255, 69, 0, 0.15);
+      animation: seatPop 0.2s;
+    }
+    @keyframes seatPop {
+      0% { transform: scale(1.08);}
+      80% { transform: scale(0.95);}
+      100% { transform: scale(1);}
+    }
+    .seat-btn.reserved {
+      background: repeating-linear-gradient(135deg, #d2d5d8 0 10px, #6c757d 10px 20px) !important;
+      color: #aab1b8 !important;
+      border-color: #6c757d !important;
+      cursor: not-allowed;
+      opacity: 0.7;
+      text-decoration: line-through;
+      box-shadow: none;
+    }
+    body.dark-mode .seat-btn.available {
+      background: linear-gradient(120deg, #23272f 80%, #181a20 100%) !important;
+      color: var(--accent) !important;
+      border-color: var(--accent);
+    }
+    body.dark-mode .seat-btn.selected {
+      background: linear-gradient(120deg, var(--accent) 80%, #0d6efd 100%) !important;
+      color: #fff !important;
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 11px 2.5px var(--accent), 0 2px 12px rgba(13,110,253,0.13);
+    }
+    body.dark-mode .seat-btn.reserved {
+      background: repeating-linear-gradient(135deg, #343a40 0 10px, #181a20 10px 20px) !important;
+      color: #aab1b8 !important;
+      border-color: #343a40 !important;
+    }
+    .seat-btn:active:not(.reserved) {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.18) inset;
+    }
+    body.dark-mode .screen-label {
+      background: linear-gradient(90deg, #23272f 90%, #181a20 100%);
+      color: #e6e9ef;
+      border-bottom: 3px solid var(--accent);
+    }
     .btn-brand, .btn-accent, .btn-warning, .btn-accent:focus, .btn-brand:focus { background: var(--btn-primary-bg) !important; color: var(--btn-primary-text) !important; border: none; font-weight: 700; }
     .btn-accent { background: var(--accent) !important; color: #fff !important; }
     .badge { border-radius: 10px; }
@@ -354,6 +440,23 @@ if (!isset($_SESSION['access_token']) || empty($_SESSION['user_email'])) {
                 <?php if ($showtime_selected): ?>
                   <div id="seat-section">
                     <label class="mb-2"><b>Select your seats:</b></label>
+                    <!-- Add this above your seat map -->
+                    <div class="text-center mb-2">
+                      <span class="screen-label" style="
+                        display: inline-block;
+                        background: linear-gradient(90deg, #f3f5f9 90%, #ffe0d4 100%);
+                        color: #333;
+                        font-weight: 700;
+                        font-size: 1.1rem;
+                        border-radius: 16px 16px 30px 30px;
+                        padding: 12px 40px 10px 40px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+                        letter-spacing: 0.15em;
+                        border-bottom: 3px solid var(--accent);
+                      ">
+                        SCREEN
+                      </span>
+                    </div>
                     <div id="seat-map" class="seat-map">
                       <?php
                         $rows = range('A', 'E');
