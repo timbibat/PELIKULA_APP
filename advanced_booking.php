@@ -134,6 +134,20 @@ $days = range(1,31);
       --bg-main: #f7f8fa;
       --bg-card: #fff;
       --text-main: #1a1a22;
+      --text-muted: #5a5a6e;
+      --navbar-bg: #e9ecef;
+      --navbar-text: #1a1a22;
+      --footer-bg: #e9ecef;
+      --brand: #FF4500;
+      --badge-bg: #6c757d;
+      --seat-available-bg: #f3f5f9;
+      --seat-available-border: #FF4500;
+      --seat-selected-bg: #FF4500;
+      --seat-selected-text: #fff;
+      --seat-reserved-bg: #6c757d;
+      --seat-reserved-text: #fff;
+      --btn-primary-bg: #FF4500;
+      --btn-primary-text: #fff;
       --toggle-btn-bg: #FF4500;
       --toggle-btn-color: #fff;
       --toggle-btn-border: #FF4500;
@@ -143,6 +157,20 @@ $days = range(1,31);
       --bg-main: #10121a;
       --bg-card: #181a20;
       --text-main: #e6e9ef;
+      --text-muted: #aab1b8;
+      --navbar-bg: #23272f;
+      --navbar-text: #fff;
+      --footer-bg: #181a20;
+      --brand: #0d6efd;
+      --badge-bg: #343a40;
+      --seat-available-bg: #23272f;
+      --seat-available-border: #0d6efd;
+      --seat-selected-bg: #0d6efd;
+      --seat-selected-text: #fff;
+      --seat-reserved-bg: #6c757d;
+      --seat-reserved-text: #fff;
+      --btn-primary-bg: #0d6efd;
+      --btn-primary-text: #fff;
       --toggle-btn-bg: #23272f;
       --toggle-btn-color: #0d6efd;
       --toggle-btn-border: #0d6efd;
@@ -162,13 +190,17 @@ $days = range(1,31);
     }
     .card { border-radius: 16px !important; background: var(--bg-card); color: var(--text-main);}
     .card-title { font-weight:700; color:var(--accent);}
-    .error { color: red; text-align: center; margin-bottom: 16px; }
+    .error { color: var(--seat-reserved-bg); text-align: center; margin-bottom: 16px; }
     .success { color: green; text-align: center; margin-bottom: 16px; }
     .seat-map { display: grid; grid-template-columns: repeat(10, 32px); gap: 8px; margin: 0 auto 12px auto; width: max-content;}
-    .seat-btn { width: 32px; height: 32px; font-size: 0.75rem; border-radius: 6px; border: 1px solid var(--accent); cursor: pointer; }
-    .seat-btn.available { background: #f5f5f5; color: var(--accent);}
-    .seat-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent);}
-    .seat-btn.reserved { background: #e63946; color: #fff; cursor: not-allowed; border-color: #e63946;}
+    .seat-btn { width: 32px; height: 32px; font-size: 0.75rem; border-radius: 6px; border: 1px solid var(--seat-available-border); cursor: pointer; }
+    .seat-btn.available { background: var(--seat-available-bg) !important; color: var(--accent) !important; }
+    .seat-btn.selected { background: var(--seat-selected-bg) !important; color: var(--seat-selected-text) !important; border-color: var(--seat-selected-bg) !important; }
+    .seat-btn.reserved { background: var(--seat-reserved-bg) !important; color: var(--seat-reserved-text) !important; border-color: var(--seat-reserved-bg) !important; cursor: not-allowed; }
+    .badge { border-radius: 10px; }
+    .badge.bg-secondary { background: var(--badge-bg) !important; }
+    .form-text.text-muted, .text-muted { color: var(--text-muted) !important; }
+    footer { background: var(--footer-bg); color: var(--brand); }
   </style>
   <script>
     function setMode(mode) {
@@ -280,12 +312,13 @@ $days = range(1,31);
         <input type="hidden" name="year" value="<?= htmlspecialchars($year) ?>">
         <input type="hidden" name="showtime" value="<?= htmlspecialchars($showtime_selected) ?>">
 
-        <div id="seat-section" style="margin-bottom:18px;">
-          <label><b>Select your seats:</b></label>
+        <div id="seat-section">
+          <label class="mb-2"><b>Select your seats:</b></label>
           <div id="seat-map" class="seat-map">
             <?php
               $rows = range('A', 'E');
               $cols = range(1, 10);
+              $reserved_seats = get_reserved_seats($pdo, $lockedMovie['id'], $showdate, $showtime_selected);
               foreach ($rows as $row) {
                 foreach ($cols as $col) {
                   $seat_code = $row . $col;
@@ -296,7 +329,7 @@ $days = range(1,31);
               }
             ?>
           </div>
-          <small class="text-muted">Red = reserved, <span style="color:var(--accent);">Accent</span> = selected, Gray = available</small>
+          <small class="text-muted">Gray = Reserved, Solid Color = Selected, Light = Available</small>
           <input type="hidden" name="selected_seats" id="selected_seats" value="<?= htmlspecialchars(implode(',', $selected_seats)) ?>">
         </div>
         <div class="row g-3 mb-3">
@@ -346,26 +379,27 @@ document.addEventListener('DOMContentLoaded', function() {
   let selectedSeats = [];
 
   seatBtns.forEach(btn => {
-      btn.addEventListener('click', function () {
-          if (btn.hasAttribute('disabled')) return;
-          if (btn.classList.contains('selected')) {
-              btn.classList.remove('selected');
-              selectedSeats = selectedSeats.filter(s => s !== btn.dataset.seat);
-          } else {
-              if (selectedSeats.length >= parseInt(quantityInput.value || 1)) {
-                  alert('You can only select ' + quantityInput.value + ' seat(s).');
-                  return;
-              }
-              btn.classList.add('selected');
-              selectedSeats.push(btn.dataset.seat);
-          }
-          selectedSeatsInput.value = selectedSeats.join(',');
-      });
+    btn.addEventListener('click', function () {
+      if (btn.classList.contains('selected')) {
+        btn.classList.remove('selected');
+        selectedSeats = selectedSeats.filter(s => s !== btn.dataset.seat);
+      } else {
+        const maxSeats = parseInt(quantityInput.value || 1);
+        if (selectedSeats.length >= maxSeats) {
+          alert('You can only select ' + maxSeats + ' seat(s).');
+          return;
+        }
+        btn.classList.add('selected');
+        selectedSeats.push(btn.dataset.seat);
+      }
+      selectedSeatsInput.value = selectedSeats.join(',');
+    });
   });
 
   if (quantityInput) {
     quantityInput.addEventListener('input', function () {
-      while (selectedSeats.length > parseInt(quantityInput.value || 1)) {
+      const maxSeats = parseInt(quantityInput.value || 1);
+      while (selectedSeats.length > maxSeats) {
         const seat = selectedSeats.pop();
         const btn = document.querySelector('.seat-btn[data-seat="'+seat+'"]');
         if (btn) btn.classList.remove('selected');

@@ -174,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['movie_id'])) {
       --seat-available-border: #FF4500;
       --seat-selected-bg: #FF4500;
       --seat-selected-text: #fff;
-      --seat-reserved-bg: #e63946;
+      --seat-reserved-bg: #6c757d;
       --seat-reserved-text: #fff;
       --btn-primary-bg: #FF4500;
       --btn-primary-text: #fff;
@@ -369,7 +369,7 @@ if (!isset($_SESSION['access_token']) || empty($_SESSION['user_email'])) {
                         }
                       ?>
                     </div>
-                    <small class="text-muted">Gray = Reserved, Gold = Selected, Light = Available</small>
+                    <small class="text-muted">Gray = Reserved, Solid Color = Selected, Light = Available</small>
                   </div>
                 <?php endif; ?>
 
