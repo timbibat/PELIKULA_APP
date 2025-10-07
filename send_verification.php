@@ -37,56 +37,183 @@ $message->setRaw($encoded_message);
 <head>
     <meta charset="UTF-8">
     <title>Email Verification</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        body { background: #f0f2f5; }
-        .card { margin-top: 60px; }
+    :root {
+      --accent: #FF4500;
+      --bg-main: #f7f8fa;
+      --bg-card: #fff;
+      --text-main: #1a1a22;
+      --text-muted: #5a5a6e;
+      --navbar-bg: #e9ecef;
+      --navbar-text: #1a1a22;
+      --btn-accent-bg: #FF4500;
+      --btn-accent-text: #fff;
+    }
+    body.dark-mode {
+      --accent: #0d6efd;
+      --bg-main: #181a20;
+      --bg-card: #23272f;
+      --text-main: #e6e9ef;
+      --text-muted: #aab1b8;
+      --navbar-bg: #23272f;
+      --navbar-text: #fff;
+      --btn-accent-bg: #0d6efd;
+      --btn-accent-text: #fff;
+    }
+    html, body { background: var(--bg-main); color: var(--text-main); min-height: 100vh; }
+    .navbar { background: var(--navbar-bg) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.17);}
+    .navbar .navbar-brand { color: var(--accent) !important; font-weight: bold; }
+    .navbar-profile-pic { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
+    #toggleModeBtn {
+      background: transparent !important;
+      color: var(--accent) !important;
+      border: 2px solid var(--accent) !important;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+      border-radius: 10px;
+      font-size: 1.3rem;
+    }
+    #toggleModeBtn:focus {
+      outline: 2px solid var(--accent);
+    }
+    .center-card-bg {
+      min-height: calc(100vh - 70px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+    }
+    .verify-card {
+      max-width: 480px;
+      width: 100%;
+      border-radius: 18px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.13);
+      background: var(--bg-card);
+      padding: 2.5rem 2rem;
+      margin: 2rem 0;
+      text-align: center;
+      color: var(--text-main);
+    }
+    .verify-card h4 {
+      color: #1fa443;
+      font-weight: 700;
+      font-size: 2rem;
+      margin-top: 1rem;
+    }
+    .verify-card .text-danger { color: #e63946 !important; }
+    .btn-accent {
+      background: var(--btn-accent-bg) !important;
+      color: var(--btn-accent-text) !important;
+      font-weight: 600;
+      font-size: 1.1rem;
+      padding: 0.7rem 2rem;
+      border-radius: 10px;
+      border: none;
+      margin-top: 1.4rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-accent:hover, .btn-accent:focus {
+      background: #d13d00 !important;
+      color: #fff !important;
+    }
+    .verify-card svg { margin-bottom: 20px; }
+    @media (max-width: 700px) {
+      .verify-card { padding: 1rem 0.5rem; font-size: 0.98rem;}
+      .navbar-profile-pic { width: 35px; height: 35px;}
+    }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-body text-center">
-                <?php
-                try {
-                    $service->users_messages->send("me", $message);
-                    ?>
-                    <div class="mb-3">
-                        <svg width="64" height="64" fill="currentColor" class="bi bi-envelope-check text-success" viewBox="0 0 16 16">
-                            <path d="M2 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2zm0 1h12a1 1 0 0 1 1 1v.217l-7 4.2-7-4.2V4a1 1 0 0 1 1-1zm13 2.383v6.634l-4.708-2.825L15 5.383zm-.034 7.212A1 1 0 0 1 14 13H2a1 1 0 0 1-1-1V5.383l6.708 4.028a.5.5 0 0 0 .584 0L14.966 12.595z"/>
-                            <path d="M10.854 7.646a.5.5 0 0 1 .11.638l-.057.07-2 2a.5.5 0 0 1-.638.057l-.07-.057-1-1a.5.5 0 0 1 .638-.765l.07.057.646.647 1.647-1.646a.5.5 0 0 1 .707 0z"/>
-                        </svg>
-                    </div>
-                    <h4 class="mb-2 text-success">Verification Email Sent!</h4>
-                    <p class="mb-3">
-                        We’ve sent a verification link to <strong><?= htmlspecialchars($email) ?></strong>.<br>
-                        Please check your inbox and follow the instructions to complete your registration.
-                    </p>
-                    <a href="index.php" class="btn btn-primary">Back to Home</a>
-                    <?php
-                } catch (Exception $e) {
-                    ?>
-                    <div class="mb-3">
-                        <svg width="64" height="64" fill="currentColor" class="bi bi-exclamation-triangle text-danger" viewBox="0 0 16 16">
-                            <path d="M7.938 2.016a.13.13 0 0 1 .125 0l6.857 3.94c.11.063.18.177.18.302V12.5c0 .125-.07.239-.18.302l-6.857 3.94a.13.13 0 0 1-.125 0l-6.857-3.94A.344.344 0 0 1 1 12.5V6.258c0-.125.07-.239.18-.302l6.857-3.94zM8 1a1 1 0 0 0-.516.142l-6.857 3.94C.21 5.267 0 5.62 0 6.008V12.5c0 .388.21.741.627.926l6.857 3.94A1 1 0 0 0 8 17a1 1 0 0 0 .516-.142l6.857-3.94A1 1 0 0 0 16 12.5V6.008c0-.388-.21-.741-.627-.926l-6.857-3.94A1 1 0 0 0 8 1z"/>
-                            <path d="M8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1-2.002 0 1 1 0 0 1 2.002 0z"/>
-                        </svg>
-                    </div>
-                    <h4 class="mb-2 text-danger">Failed to Send Email</h4>
-                    <p class="mb-3">
-                        Sorry, we couldn't send the verification email.<br>
-                        <span class="text-muted"><?= htmlspecialchars($e->getMessage()) ?></span>
-                    </p>
-                    <a href="index.php" class="btn btn-secondary">Back to Home</a>
-                    <?php
-                }
-                ?>
-                </div>
-            </div>
-        </div>
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="index.php">
+      <img src="pictures/gwapobibat1.png" alt="Logo" height="34" class="me-2">
+      PELIKULA
+    </a>
+    <div class="d-flex ms-auto align-items-center">
+      <button id="toggleModeBtn" class="btn btn-outline-warning me-3" title="Toggle light/dark mode">
+        <i class="bi bi-moon-stars" id="modeIcon"></i>
+      </button>
+      <?php if (isset($_SESSION['user_email'])): ?>
+        <?php
+          $displayName = explode('@', $_SESSION['user_email'])[0];
+          $profileImg = !empty($_SESSION['user_picture'])
+              ? htmlspecialchars($_SESSION['user_picture'])
+              : "https://ui-avatars.com/api/?name=" . urlencode($displayName) . "&background=0D8ABC&color=fff";
+        ?>
+        <a href="profile.php" title="Go to Profile">
+          <img src="<?php echo $profileImg; ?>" class="navbar-profile-pic" alt="Profile">
+        </a>
+      <?php endif; ?>
     </div>
+  </div>
+</nav>
+<div class="center-card-bg">
+  <div class="verify-card animate__animated animate__fadeInUp">
+    <?php
+    try {
+        $service->users_messages->send("me", $message);
+        ?>
+        <div class="mb-3">
+            <svg width="64" height="64" fill="currentColor" class="bi bi-envelope-check text-success" viewBox="0 0 16 16">
+                <path d="M2 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2zm0 1h12a1 1 0 0 1 1 1v.217l-7 4.2-7-4.2V4a1 1 0 0 1 1-1zm13 2.383v6.634l-4.708-2.825L15 5.383zm-.034 7.212A1 1 0 0 1 14 13H2a1 1 0 0 1-1-1V5.383l6.708 4.028a.5.5 0 0 0 .584 0L14.966 12.595z"/>
+                <path d="M10.854 7.646a.5.5 0 0 1 .11.638l-.057.07-2 2a.5.5 0 0 1-.638.057l-.07-.057-1-1a.5.5 0 0 1 .638-.765l.07.057.646.647 1.647-1.646a.5.5 0 0 1 .707 0z"/>
+            </svg>
+        </div>
+        <h4 class="mb-2">Verification Email Sent!</h4>
+        <p class="mb-3" style="font-size:1.15rem;">
+            We’ve sent a verification link to <strong><?= htmlspecialchars($email) ?></strong>.<br>
+            Please check your inbox and follow the instructions to complete your registration.
+        </p>
+        <a href="index.php" class="btn btn-accent">Back to Home</a>
+        <?php
+    } catch (Exception $e) {
+        ?>
+        <div class="mb-3">
+            <svg width="64" height="64" fill="currentColor" class="bi bi-exclamation-triangle text-danger" viewBox="0 0 16 16">
+                <path d="M7.938 2.016a.13.13 0 0 1 .125 0l6.857 3.94c.11.063.18.177.18.302V12.5c0 .125-.07.239-.18.302l-6.857 3.94a.13.13 0 0 1-.125 0l-6.857-3.94A.344.344 0 0 1 1 12.5V6.258c0-.125.07-.239.18-.302l6.857-3.94zM8 1a1 1 0 0 0-.516.142l-6.857 3.94C.21 5.267 0 5.62 0 6.008V12.5c0 .388.21.741.627.926l6.857 3.94A1 1 0 0 0 8 17a1 1 0 0 0 .516-.142l6.857-3.94A1 1 0 0 0 16 12.5V6.008c0-.388-.21-.741-.627-.926l-6.857-3.94A1 1 0 0 0 8 1z"/>
+                <path d="M8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1-2.002 0 1 1 0 0 1 2.002 0z"/>
+            </svg>
+        </div>
+        <h4 class="mb-2 text-danger">Failed to Send Email</h4>
+        <p class="mb-3" style="font-size:1.15rem;">
+            Sorry, we couldn't send the verification email.<br>
+            <span class="text-muted"><?= htmlspecialchars($e->getMessage()) ?></span>
+        </p>
+        <a href="index.php" class="btn btn-accent">Back to Home</a>
+        <?php
+    }
+    ?>
+  </div>
 </div>
+<script>
+function setMode(mode) {
+  const dark = (mode === 'dark');
+  if (dark) {
+    document.body.classList.add('dark-mode');
+    document.getElementById('modeIcon').className = 'bi bi-brightness-high';
+    localStorage.setItem('theme', 'dark');
+  } else {
+    document.body.classList.remove('dark-mode');
+    document.getElementById('modeIcon').className = 'bi bi-moon-stars';
+    localStorage.setItem('theme', 'light');
+  }
+}
+document.addEventListener('DOMContentLoaded', function() {
+  const theme = localStorage.getItem('theme') || 'light';
+  setMode(theme);
+  const toggleBtn = document.getElementById('toggleModeBtn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      const isDark = document.body.classList.contains('dark-mode');
+      setMode(isDark ? 'light' : 'dark');
+    });
+  }
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
