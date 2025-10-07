@@ -42,6 +42,7 @@ $admin_email = $_SESSION['admin_email'];
 <head>
     <meta charset="UTF-8">
     <title>User Bookings - Admin - Pelikula</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
@@ -71,6 +72,10 @@ $admin_email = $_SESSION['admin_email'];
       --toggle-btn-color: #0d6efd;
       --toggle-btn-border: #0d6efd;
     }
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
     body { background: var(--bg-main); color: var(--text-main);}
     .navbar { background: var(--navbar-bg) !important; box-shadow:0 2px 12px rgba(0,0,0,0.25);}
     .navbar .navbar-brand { color: var(--accent) !important; }
@@ -89,6 +94,9 @@ $admin_email = $_SESSION['admin_email'];
       min-height: 100vh;
       padding-top: 2rem;
       box-shadow: 1px 0 12px rgba(0,0,0,0.07);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
     .dashboard-sidebar .nav-link {
       color: var(--sidebar-text);
@@ -101,6 +109,7 @@ $admin_email = $_SESSION['admin_email'];
       display: flex;
       align-items: center;
       gap: 10px;
+      white-space: nowrap;
     }
     .dashboard-sidebar .nav-link.active,
     .dashboard-sidebar .nav-link:hover {
@@ -109,19 +118,113 @@ $admin_email = $_SESSION['admin_email'];
     }
     .dashboard-main {
       padding: 2.5rem 2rem;
+      min-height: 100vh;
     }
-    .status-done { color: green; font-weight: bold; }
-    .status-upcoming { color: var(--accent); font-weight: bold; }
-    .status-cancelled { color: red; font-weight: bold; }
-    .table thead { background: var(--accent); color: #fff; }
-    .table-bordered {
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    .booking-card {
+      background: var(--bg-card);
+      border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      margin-bottom: 1.2rem;
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      align-items: center;
+      transition: box-shadow 0.15s;
     }
-    @media (max-width: 991.98px) {
-      .dashboard-sidebar { min-height: auto; }
-      .dashboard-main { padding: 1.4rem 0.5rem; }
+    .booking-card:hover {
+      box-shadow: 0 6px 24px rgba(0,0,0,0.13);
+    }
+    .booking-left {
+      flex:2 1 280px;
+      min-width: 200px;
+    }
+    .booking-right {
+      flex:1 1 180px;
+      text-align:right;
+      min-width: 120px;
+    }
+    .booking-id {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+    }
+    .booking-detail {
+      margin-bottom: 0.35rem;
+      font-size: 0.99rem;
+    }
+    .badge-status {
+      font-size: 0.95rem;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-top: 7px;
+      display:inline-block;
+    }
+    .status-done { background: #eafbe4; color: #1fa443; border: 1px solid #a2e7b1;}
+    .status-upcoming { background: #fff4e5; color: var(--accent); border: 1px solid #ffd9b3;}
+    .status-cancelled { background: #ffe5e0; color: #cc0000; border: 1px solid #ffbdb2;}
+    .booking-email { color: #0d6efd; font-weight: 600;}
+    .user-email { color: #0d6efd;}
+    .booking-seats { letter-spacing: 0.04em; }
+    .booking-card .icon {
+      font-size: 1.2rem;
+      opacity: 0.45;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    .booked-at {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      margin-top: 0.4rem;
+    }
+    /* Responsive styles */
+    @media (max-width:1200px) {
+      .dashboard-main { padding: 2rem 0.5rem; }
+      .booking-card { padding: 1rem 0.7rem;}
+    }
+    @media (max-width:991.98px) {
+      .container-fluid, .main-row, .dashboard-sidebar, .dashboard-main {
+        width: 100% !important;
+        max-width: 100vw !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box;
+      }
+      .dashboard-sidebar {
+        min-height: auto;
+        padding-top: 1rem;
+        margin-bottom: 1rem;
+        flex-direction: row;
+        gap: 0.5rem;
+        box-shadow: none;
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        z-index: 100;
+      }
+      .dashboard-sidebar .nav-link {
+        font-size: 1rem;
+        margin-bottom: 0;
+        margin-right: 8px;
+        padding: 10px 12px;
+        border-radius: 6px;
+        white-space: nowrap;
+      }
+      .dashboard-main { padding: 0.8rem 0.2rem !important; }
+      .main-row { flex-direction: column;}
+      .booking-card { padding: 0.7rem 0.2rem;}
+    }
+    @media (max-width:700px) {
+      .dashboard-sidebar { padding-top: 0.5rem; }
+      .dashboard-sidebar .nav-link { font-size: 0.92rem; padding: 8px 7px; }
+      .dashboard-main { padding: 0.3rem 0.1rem !important;}
+      .main-row { flex-direction: column;}
+      .booking-card { font-size: 0.93rem; padding: 0.4rem;}
+      .booking-id { font-size: 1rem;}
+      .booking-detail { font-size: 0.93rem;}
     }
     </style>
     <script>
@@ -176,9 +279,9 @@ $admin_email = $_SESSION['admin_email'];
   </div>
 </nav>
 <div class="container-fluid">
-  <div class="row">
+  <div class="row main-row">
     <!-- Sidebar -->
-    <nav class="col-lg-2 col-md-3 dashboard-sidebar d-flex flex-column">
+    <nav class="col-lg-2 col-md-3 dashboard-sidebar d-flex flex-column flex-md-column flex-lg-column flex-row flex-wrap">
       <a href="admin_dashboard.php" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
       <a href="view_user_bookings.php" class="nav-link active"><i class="bi bi-ticket-detailed"></i> User Bookings</a>
       <a href="view_user_replies.php" class="nav-link"><i class="bi bi-chat-dots"></i> User Replies</a>
@@ -190,48 +293,46 @@ $admin_email = $_SESSION['admin_email'];
       <?php if (count($bookings) === 0): ?>
           <div class="alert alert-info">No bookings found.</div>
       <?php else: ?>
-          <div class="table-responsive">
-          <table class="table table-bordered align-middle">
-              <thead>
-                  <tr>
-                      <th>Booking ID</th>
-                      <th>Booking Email</th>
-                      <th>User Email (if registered)</th>
-                      <th>Movie ID</th>
-                      <th>Show Date</th>
-                      <th>Showtime</th>
-                      <th>Seat</th>
-                      <th>Quantity</th>
-                      <th>Booked At</th>
-                      <th>Status</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  <?php foreach ($bookings as $b): ?>
-                      <tr>
-                          <td><?php echo $b['booking_id']; ?></td>
-                          <td><?php echo htmlspecialchars($b['booking_email']); ?></td>
-                          <td><?php echo $b['user_email'] ? htmlspecialchars($b['user_email']) : '—'; ?></td>
-                          <td><?php echo htmlspecialchars($b['movie_id']); ?></td>
-                          <td><?php echo htmlspecialchars($b['showdate']); ?></td>
-                          <td><?php echo htmlspecialchars($b['showtime']); ?></td>
-                          <td><?php echo htmlspecialchars($b['seat']); ?></td>
-                          <td><?php echo htmlspecialchars($b['quantity']); ?></td>
-                          <td><?php echo htmlspecialchars($b['booked_at']); ?></td>
-                          <td>
-                              <?php if ($b['status'] === 'Done'): ?>
-                                  <span class="status-done">Done</span>
-                              <?php elseif ($b['status'] === 'Cancelled'): ?>
-                                  <span class="status-cancelled">Cancelled</span>
-                              <?php else: ?>
-                                  <span class="status-upcoming">Upcoming</span>
-                              <?php endif; ?>
-                          </td>
-                      </tr>
-                  <?php endforeach; ?>
-              </tbody>
-          </table>
-          </div>
+          <?php foreach ($bookings as $b): ?>
+            <div class="booking-card">
+              <div class="booking-left">
+                <div class="booking-id">
+                  <i class="bi bi-hash icon"></i>Booking #<?= $b['booking_id']; ?>
+                </div>
+                <div class="booking-detail booking-email">
+                  <i class="bi bi-envelope icon"></i><?= htmlspecialchars($b['booking_email']); ?>
+                </div>
+                <div class="booking-detail user-email">
+                  <i class="bi bi-person-circle icon"></i><?= $b['user_email'] ? htmlspecialchars($b['user_email']) : '—'; ?>
+                </div>
+                <div class="booking-detail">
+                  <i class="bi bi-film icon"></i>Movie ID: <?= htmlspecialchars($b['movie_id']); ?>
+                </div>
+                <div class="booking-detail">
+                  <i class="bi bi-calendar-event icon"></i><?= htmlspecialchars($b['showdate']); ?> &nbsp;
+                  <i class="bi bi-clock icon"></i><?= htmlspecialchars($b['showtime']); ?>
+                </div>
+                <div class="booking-detail booking-seats">
+                  <i class="bi bi-grid icon"></i>Seat(s): <?= htmlspecialchars($b['seat']); ?>
+                </div>
+                <div class="booking-detail">
+                  <i class="bi bi-123 icon"></i>Quantity: <?= htmlspecialchars($b['quantity']); ?>
+                </div>
+                <div class="booked-at">
+                  <i class="bi bi-calendar-plus icon"></i>Booked at: <?= htmlspecialchars($b['booked_at']); ?>
+                </div>
+              </div>
+              <div class="booking-right">
+                <?php if ($b['status'] === 'Done'): ?>
+                    <span class="badge-status status-done">Done</span>
+                <?php elseif ($b['status'] === 'Cancelled'): ?>
+                    <span class="badge-status status-cancelled">Cancelled</span>
+                <?php else: ?>
+                    <span class="badge-status status-upcoming">Upcoming</span>
+                <?php endif; ?>
+              </div>
+            </div>
+          <?php endforeach; ?>
       <?php endif; ?>
     </main>
   </div>

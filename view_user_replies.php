@@ -25,7 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['parent_reply_id'], $_
     $admin_message = trim($_POST['admin_message']);
     $admin_email = 'admin@pelikulacinema.com';
 
-    // Fetch original reply to get user info (for booking_id)
     $stmt = $pdo->prepare("SELECT * FROM replies WHERE id=?");
     $stmt->execute([$parent_reply_id]);
     $parent_reply = $stmt->fetch();
@@ -72,12 +71,10 @@ foreach ($all_replies as $reply) {
     $replies_by_booking[$reply['booking_id']][] = $reply;
 }
 
-// Helper to check if a reply is new (not seen)
 function isNewReply($reply) {
     return empty($reply['is_seen']) || $reply['is_seen'] == 0;
 }
 
-// Helper to recursively display threaded replies for a single booking
 function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
     global $pdo;
     $by_parent = [];
@@ -87,37 +84,53 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
     if (isset($by_parent[$parent_id])) {
         foreach ($by_parent[$parent_id] as $reply) {
             $is_admin = (strtolower($reply['user_email']) === 'admin@pelikulacinema.com');
-            $indent = $level * 40;
             $is_new = isNewReply($reply);
             if ($is_new) {
                 markReplyAsSeen($pdo, $reply['reply_id']);
             }
-            echo "<tr" . ($is_new ? " class='table-warning'" : "") . ">";
-            echo "<td style='padding-left:{$indent}px'>";
-            if ($is_admin) {
-                echo "<span class='badge bg-secondary'>ADMIN</span> ";
-            }
-            echo htmlspecialchars($reply['user_email']);
-            if ($is_new) {
-                echo " <span class=\"badge bg-success ms-1\">New</span>";
-            }
-            echo "</td>";
-            echo "<td>" . htmlspecialchars($reply['movie_title'] ?? '-') . "</td>";
-            echo "<td class='message-cell'>" . nl2br(htmlspecialchars($reply['message'])) . "</td>";
-            echo "<td>" . htmlspecialchars($reply['created_at']) . "</td>";
-            echo "<td>";
-            if (!$is_admin) {
-                ?>
-                <button class="btn btn-sm btn-primary" onclick="showReplyForm(<?= $reply['reply_id'] ?>)">Reply</button>
-                <form id="reply-form-<?= $reply['reply_id'] ?>" method="POST" style="display:none; margin-top:8px;">
-                    <input type="hidden" name="parent_reply_id" value="<?= $reply['reply_id'] ?>">
-                    <textarea name="admin_message" class="form-control mb-2" rows="2" placeholder="Type admin reply..." required></textarea>
-                    <button type="submit" class="btn btn-success btn-sm">Send</button>
-                </form>
-                <?php
-            }
-            echo "</td>";
-            echo "</tr>";
+            $avatar_url = $is_admin
+                ? "https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff"
+                : "https://ui-avatars.com/api/?name=" . urlencode(explode('@', $reply['user_email'])[0]) . "&background=FF4500&color=fff";
+            $margin_left = $level * 36;
+            ?>
+            <div class="reply-card card mb-2 shadow-sm" style="margin-left:<?= $margin_left ?>px; border-left: 6px solid <?= $is_admin ? '#0d6efd' : '#FF4500' ?>">
+                <div class="card-body py-3 px-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap">
+                        <div class="d-flex align-items-center flex-wrap">
+                            <img src="<?= $avatar_url ?>" alt="avatar" class="rounded-circle me-2" style="width:32px;height:32px;">
+                            <span class="fw-semibold <?= $is_admin ? 'text-primary' : 'text-danger' ?>">
+                                <?= htmlspecialchars($reply['user_email']) ?>
+                            </span>
+                            <?php if ($is_admin): ?>
+                                <span class="badge bg-primary ms-2">ADMIN</span>
+                            <?php endif; ?>
+                            <?php if ($is_new && !$is_admin): ?>
+                                <span class="badge bg-success ms-2">New</span>
+                            <?php endif; ?>
+                        </div>
+                        <span class="text-muted small"><?= date('M d, Y h:i A', strtotime($reply['created_at'])) ?></span>
+                    </div>
+                    <div class="mb-2 flex-wrap">
+                        <span class="badge bg-secondary"><?= htmlspecialchars($reply['movie_title'] ?? '-') ?></span>
+                        <span class="badge bg-light text-dark">Booking ID: <?= htmlspecialchars($reply['booking_id']) ?></span>
+                    </div>
+                    <div class="reply-message mb-2" style="white-space:pre-line;"><?= htmlspecialchars($reply['message']) ?></div>
+                    <?php if (!$is_admin): ?>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <button class="btn btn-sm btn-primary" onclick="showReplyForm(<?= $reply['reply_id'] ?>)">
+                                <i class="bi bi-reply"></i> Reply
+                            </button>
+                            <!-- Reply form -->
+                            <form id="reply-form-<?= $reply['reply_id'] ?>" method="POST" style="display:none; margin-top:8px; width:100%;">
+                                <input type="hidden" name="parent_reply_id" value="<?= $reply['reply_id'] ?>">
+                                <textarea name="admin_message" class="form-control mb-2" rows="2" placeholder="Type admin reply..." required></textarea>
+                                <button type="submit" class="btn btn-success btn-sm">Send</button>
+                            </form>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php
             displayRepliesThreaded($replies, $reply['reply_id'], $level + 1);
         }
     }
@@ -128,6 +141,7 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
 <head>
     <meta charset="UTF-8">
     <title>User Replies - Admin - Pelikula</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
@@ -170,11 +184,15 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
     #toggleModeBtn:focus {
       outline: 2px solid var(--toggle-btn-border);
     }
+    /* Sidebar styles */
     .dashboard-sidebar {
       background: var(--sidebar-bg);
       min-height: 100vh;
       padding-top: 2rem;
       box-shadow: 1px 0 12px rgba(0,0,0,0.07);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
     .dashboard-sidebar .nav-link {
       color: var(--sidebar-text);
@@ -187,24 +205,70 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
       display: flex;
       align-items: center;
       gap: 10px;
+      white-space: nowrap;
     }
     .dashboard-sidebar .nav-link.active,
     .dashboard-sidebar .nav-link:hover {
       background: var(--accent);
       color: #fff !important;
     }
+    /* Main content styles */
     .dashboard-main {
       padding: 2.5rem 2rem;
+      min-height: 100vh;
+    }
+    .reply-card.card {
+      border-radius: 16px !important;
+      background: var(--bg-card);
+      word-break: break-word;
+    }
+    .reply-message {
+      font-size: 1.1rem;
+      color: var(--text-main);
+      margin-bottom: 0.4rem;
     }
     .accordion-button:not(.collapsed), .accordion-button:focus {
       background: var(--accent) !important;
       color: #fff;
     }
-    .message-cell { max-width: 400px; word-break: break-word; }
-    td { vertical-align: top; }
-    @media (max-width: 991.98px) {
-      .dashboard-sidebar { min-height: auto; }
-      .dashboard-main { padding: 1.4rem 0.5rem; }
+    /* Responsive styles */
+    @media (max-width:1200px) {
+      .dashboard-main { padding: 2rem 0.5rem; }
+    }
+    @media (max-width:991.98px) {
+      .dashboard-sidebar {
+        min-height: auto;
+        padding-top: 1rem;
+        margin-bottom: 1rem;
+        flex-direction: row;
+        gap: 0.5rem;
+        box-shadow: none;
+        width: 100%;
+      }
+      .dashboard-sidebar .nav-link {
+        font-size: 1rem;
+        margin-bottom: 0;
+        margin-right: 8px;
+        padding: 10px 12px;
+        border-radius: 6px;
+        white-space: nowrap;
+      }
+      .dashboard-main { padding: 0.8rem 0.2rem; }
+      .reply-card.card { font-size: 0.97rem; }
+      .reply-message { font-size: 1rem; }
+      .main-row {
+        flex-direction: column;
+      }
+    }
+    @media (max-width:700px) {
+      .dashboard-sidebar { padding-top: 0.5rem; }
+      .dashboard-sidebar .nav-link { font-size: 0.92rem; padding: 8px 7px; }
+      .dashboard-main { padding: 0.3rem 0.1rem;}
+      .reply-card.card { font-size: 0.93rem; padding: 0.2rem;}
+      .reply-message { font-size: 0.92rem;}
+      .main-row {
+        flex-direction: column;
+      }
     }
     </style>
     <script>
@@ -262,50 +326,39 @@ function displayRepliesThreaded($replies, $parent_id = 0, $level = 0) {
   </div>
 </nav>
 <div class="container-fluid">
-  <div class="row">
-    <nav class="col-lg-2 col-md-3 dashboard-sidebar d-flex flex-column">
+  <div class="row main-row">
+    <!-- Sidebar (always visible, even on mobile) -->
+    <nav class="col-lg-2 col-md-3 dashboard-sidebar d-flex flex-column flex-md-column flex-lg-column flex-row flex-wrap">
       <a href="admin_dashboard.php" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
       <a href="view_user_bookings.php" class="nav-link"><i class="bi bi-ticket-detailed"></i> User Bookings</a>
       <a href="view_user_replies.php" class="nav-link active"><i class="bi bi-chat-dots"></i> User Replies</a>
       <a href="logout.php" class="nav-link text-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
     </nav>
+    <!-- Main Content -->
     <main class="col-lg-10 col-md-9 dashboard-main">
-      <div class="container mt-3">
-        <h2 class="mb-4" style="color:var(--accent);">User Replies by Booking</h2>
-        <?php if (empty($replies_by_booking)): ?>
-            <div class="alert alert-info">No replies found.</div>
-        <?php else: ?>
-            <div class="accordion" id="bookingAccordion">
-                <?php foreach ($replies_by_booking as $booking_id => $booking_replies): ?>
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="heading<?= $booking_id ?>">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $booking_id ?>" aria-expanded="false" aria-controls="collapse<?= $booking_id ?>">
-                            Booking ID: <?= htmlspecialchars($booking_id) ?>
-                        </button>
-                    </h2>
-                    <div id="collapse<?= $booking_id ?>" class="accordion-collapse collapse" aria-labelledby="heading<?= $booking_id ?>" data-bs-parent="#bookingAccordion">
-                        <div class="accordion-body px-0">
-                            <table class="table table-bordered align-middle mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>User Email</th>
-                                        <th>Movie</th>
-                                        <th>Message</th>
-                                        <th>Created At</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php displayRepliesThreaded($booking_replies); ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
-      </div>
+      <h2 class="mb-4" style="color:var(--accent);">User Replies by Booking</h2>
+      <?php if (empty($replies_by_booking)): ?>
+          <div class="alert alert-info">No replies found.</div>
+      <?php else: ?>
+          <div class="accordion" id="bookingAccordion">
+              <?php foreach ($replies_by_booking as $booking_id => $booking_replies): ?>
+              <div class="accordion-item mb-3">
+                  <h2 class="accordion-header" id="heading<?= $booking_id ?>">
+                      <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $booking_id ?>" aria-expanded="false" aria-controls="collapse<?= $booking_id ?>">
+                          Booking ID: <?= htmlspecialchars($booking_id) ?> 
+                          <span class="ms-2 badge bg-secondary"><?= htmlspecialchars($booking_replies[0]['movie_title'] ?? '-') ?></span>
+                          <span class="ms-2 badge bg-info"><?= count($booking_replies) ?> Replies</span>
+                      </button>
+                  </h2>
+                  <div id="collapse<?= $booking_id ?>" class="accordion-collapse collapse" aria-labelledby="heading<?= $booking_id ?>" data-bs-parent="#bookingAccordion">
+                      <div class="accordion-body px-1 px-md-3">
+                          <?php displayRepliesThreaded($booking_replies); ?>
+                      </div>
+                  </div>
+              </div>
+              <?php endforeach; ?>
+          </div>
+      <?php endif; ?>
     </main>
   </div>
 </div>
