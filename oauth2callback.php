@@ -33,48 +33,34 @@ $email = $userInfo->email;
 $_SESSION['access_token'] = $token;
 $_SESSION['user_email'] = $email;
 
-// Ensure user exists in DB and handle verification token
-try {
-    // generate a token in case we need to send verification
-    $verification_token = bin2hex(random_bytes(16));
+// Option A: Auto-verify Google-authenticated users (quick workaround)
+// This will set is_verified = 1 in DB (or insert user as verified) so profile.php won't redirect.
+// If you prefer to require email verification via send_verification.php, do NOT apply this change.
 
+try {
+    // check if user exists
     $stmt = $pdo->prepare("SELECT id, is_verified FROM users WHERE email = ?");
     $stmt->execute([$email]);
-    $user = $stmt->fetch();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user) {
-        if (!empty($user['is_verified'])) {
-            // already verified
-            $_SESSION['is_verified'] = 1;
-            // clear any session verification token
-            unset($_SESSION['verification_token']);
-        } else {
-            // existing, unverified user: update token and mark in session
-            $_SESSION['is_verified'] = 0;
-            $_SESSION['verification_token'] = $verification_token;
-            $stmt = $pdo->prepare("UPDATE users SET verification_token = ? WHERE email = ?");
-            $stmt->execute([$verification_token, $email]);
-        }
+        // set session and, if not marked verified, optionally mark verified now
+        $_SESSION['is_verified'] = !empty($user['is_verified']) ? 1 : 1; // force to 1 for Google sign-ins
+        // persist to DB: mark user verified
+        $stmt = $pdo->prepare("UPDATE users SET is_verified = 1 WHERE email = ?");
+        $stmt->execute([$email]);
     } else {
-        // new user: insert with is_verified = 0, store token
-        $_SESSION['is_verified'] = 0;
-        $_SESSION['verification_token'] = $verification_token;
-        $stmt = $pdo->prepare("INSERT INTO users (email, is_verified, verification_token, created_at) VALUES (?, 0, ?, NOW())");
-        $stmt->execute([$email, $verification_token]);
+        // create a verified user row
+        $_SESSION['is_verified'] = 1;
+        $stmt = $pdo->prepare("INSERT INTO users (email, is_verified, created_at) VALUES (?, 1, NOW())");
+        $stmt->execute([$email]);
     }
 } catch (Exception $e) {
-    // In case of DB issues, default to unverified but allow the flow to continue
-    $_SESSION['is_verified'] = 0;
-    $_SESSION['verification_token'] = $verification_token ?? bin2hex(random_bytes(16));
+    // on DB failure, set session verified so user can proceed (but log/inspect server logs)
+    $_SESSION['is_verified'] = 1;
 }
 
-// If user is unverified send them to the verification sender page (it will use the session access token)
-if (!empty($_SESSION['is_verified']) && $_SESSION['is_verified'] == 1) {
-    header('Location: index.php');
-    exit;
-} else {
-    // send_verification.php will use $_SESSION['access_token'], $_SESSION['user_email'], $_SESSION['verification_token']
-    header('Location: send_verification.php');
-    exit;
-}
+// Redirect back to index (now user will be treated as verified)
+header('Location: index.php');
+exit;
 ?>
