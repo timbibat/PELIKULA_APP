@@ -2,16 +2,28 @@
 require 'db.php';
 session_start();
 date_default_timezone_set('Asia/Manila');
-if (!isset($_SESSION['access_token']) || !isset($_SESSION['is_verified']) || !$_SESSION['is_verified']) {
+
+/*
+ * Allow access for either:
+ *  - Google OAuth users (have access_token in session)
+ *  - SMS-authenticated users (have user_phone / user_id / user_email in session)
+ * Still require that the user is verified (is_verified === truthy).
+ */
+$hasAuthToken = isset($_SESSION['access_token']);
+$hasSmsLogin  = isset($_SESSION['user_phone']) || isset($_SESSION['user_id']) || isset($_SESSION['user_email']);
+
+if ((!$hasAuthToken && !$hasSmsLogin) || !isset($_SESSION['is_verified']) || !$_SESSION['is_verified']) {
     header('Location: index.php');
     exit;
 }
 
 $errorMsg = "";
-$email = $_SESSION['user_email'] ?? '';
+// prefer email for contact; fallback to phone if email is not available
+$email = $_SESSION['user_email'] ?? ($_SESSION['user_phone'] ?? '');
 
 // --- Fetch locked movie from database ---
-$lockedMovieId = isset($_GET['id']) ? intval($_GET['id']) : 0;
+// Accept id from GET or POST (POST was missing previously and caused the page to "refresh")
+$lockedMovieId = isset($_GET['id']) ? intval($_GET['id']) : (isset($_POST['id']) ? intval($_POST['id']) : 0);
 $lockedMovie = null;
 if ($lockedMovieId) {
     $stmt = $pdo->prepare("SELECT * FROM tbl_movies WHERE id=?");
@@ -52,9 +64,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $firstName = trim($_POST['first_name'] ?? '');
     $lastName  = trim($_POST['last_name'] ?? '');
     $showtime  = trim($_POST['showtime'] ?? '');
-    $email     = trim($_POST['email'] ?? '');
+    $emailPost = trim($_POST['email'] ?? '');
     $quantity  = intval($_POST['quantity'] ?? 0);
     $selected_seats = array_filter(explode(',', $_POST['selected_seats'] ?? ''));
+
+    // prefer posted email if provided (allow users to change)
+    if (!empty($emailPost)) {
+        $email = $emailPost;
+    }
 
     if (!$movie || empty($firstName) || empty($lastName) || empty($showtime) || empty($email) || empty($quantity) || !$day || !$month || !$year || count($selected_seats) !== $quantity) {
         $errorMsg = "All fields are required, and the number of selected seats must match the quantity.";
@@ -78,13 +95,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($unavailable) {
                 $errorMsg = "Some seats are already reserved: " . implode(', ', $unavailable);
             } else {
-                $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-                $stmt->execute([$_SESSION['user_email']]);
-                $user = $stmt->fetch();
-                if (!$user) {
+                // Resolve user_id robustly: prefer session user_id, otherwise try email, then phone
+                $user_id = $_SESSION['user_id'] ?? null;
+                if (!$user_id) {
+                    if (!empty($_SESSION['user_email'])) {
+                        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+                        $stmt->execute([$_SESSION['user_email']]);
+                        $user = $stmt->fetch();
+                        $user_id = $user['id'] ?? null;
+                    }
+                }
+                if (!$user_id) {
+                    if (!empty($_SESSION['user_phone'])) {
+                        $stmt = $pdo->prepare("SELECT id FROM users WHERE phone_number = ?");
+                        $stmt->execute([$_SESSION['user_phone']]);
+                        $user = $stmt->fetch();
+                        $user_id = $user['id'] ?? null;
+                    }
+                }
+
+                if (!$user_id) {
                     $errorMsg = "User not found in database. Please log in again.";
                 } else {
-                    $user_id = $user['id'];
                     $stmt = $pdo->prepare("INSERT INTO bookings (user_id, movie_id, first_name, last_name, email, showtime, seat, quantity, booked_at, showdate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     $success = $stmt->execute([
                         $user_id,

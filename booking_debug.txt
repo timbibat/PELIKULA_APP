@@ -1,0 +1,58 @@
+==== 2025-11-13T21:40:13+08:00 ====
+POST:
+Array
+(
+    [movie_id] => 3
+    [showdate] => 2025-11-13
+    [showtime] => 2:00 PM
+    [selected_seats] => A4,A5
+    [quantity] => 2
+    [first_name] => Timothy
+    [last_name] => Bibat
+    [email] => timothybibat654@gmail.com
+)
+
+SESSION:
+Array
+(
+    [login_otp_id] => 10
+    [login_phone] => +639935349130
+    [login_user_id] => 5
+    [user_id] => 6
+    [user_phone] => +639913389514
+    [user_email] => 
+    [is_verified] => 1
+)
+
+SERVER_HTTP_REFERER: http://localhost/PELIKULA_APP/index.php?id=3&showtime=2%3A00+PM
+REMOTE_ADDR: ::1
+
+==== 2025-11-13T21:41:29+08:00 ====
+POST:
+Array
+(
+    [movie_id] => 3
+    [showdate] => 2025-11-13
+    [showtime] => 5:00 PM
+    [selected_seats] => A5
+    [quantity] => 1
+    [first_name] => Timothy
+    [last_name] => Bibat
+    [email] => timothybibat654@gmail.com
+)
+
+SESSION:
+Array
+(
+    [login_otp_id] => 10
+    [login_phone] => +639935349130
+    [login_user_id] => 5
+    [user_id] => 6
+    [user_phone] => +639913389514
+    [user_email] => 
+    [is_verified] => 1
+)
+
+SERVER_HTTP_REFERER: http://localhost/PELIKULA_APP/index.php?id=3&showtime=5%3A00+PM
+REMOTE_ADDR: ::1
+
