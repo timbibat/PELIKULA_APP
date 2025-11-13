@@ -15,9 +15,18 @@ $client->setScopes([
     Google\Service\Oauth2::USERINFO_PROFILE
 ]);
 
-// Ensure 'is_verified' is set after Google login (extra safety)
+// IMPORTANT: Do not automatically mark users verified just because user_email exists in session.
+// Instead read the DB and set session is_verified accordingly.
 if (isset($_SESSION['user_email']) && !isset($_SESSION['is_verified'])) {
-    $_SESSION['is_verified'] = 1;
+    try {
+        $stmt = $pdo->prepare("SELECT is_verified FROM users WHERE email = ?");
+        $stmt->execute([$_SESSION['user_email']]);
+        $row = $stmt->fetch();
+        $_SESSION['is_verified'] = $row ? (int)$row['is_verified'] : 0;
+    } catch (Exception $e) {
+        // If DB lookup fails, keep user unverified by default
+        $_SESSION['is_verified'] = 0;
+    }
 }
 
 // Fetch Google profile picture if token available
@@ -205,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['movie_id'])) {
       --toggle-btn-color: #0d6efd;
       --toggle-btn-border: #0d6efd;
     }
-    body { background: var(--bg-main) !important; color: var(--text-main); }
+    body { background: var(--bg-main) !important; color: var(--text-main) }
     .text-muted { color: var(--text-muted) !important; }
     .card { border-radius: 16px !important; background: var(--bg-card); color: var(--text-main); }
     .card-title { font-family: 'Montserrat', sans-serif; font-weight: 700; color: var(--accent) !important; }
@@ -619,3 +628,32 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+``` 
+
+Summary of changes and why:
+- Problem root cause: index.php was automatically marking users as verified in session without checking the DB. Also the OAuth callback previously redirected straight back to index.php and didn't create or update a verification token for newly-registered users. That caused newly-registered users to be treated as verified or left without a verification flow and they got redirected to the main page without receiving a verification email.
+- What I changed:
+  - oauth2callback.php
+    - After successful Google OAuth, the script now ensures a user row exists in the users table.
+    - If a user is new or unverified, a verification_token is generated, saved to the DB, and stored in the session.
+    - If the user is already verified we set session is_verified = 1 and redirect to index.php.
+    - For unverified users we redirect to send_verification.php (which will send the verification email using the stored access token).
+  - index.php
+    - Removed the unconditional session is_verified = 1 behavior.
+    - Instead it reads the users table and sets $_SESSION['is_verified'] according to the DB value (defaulting to 0 on DB error/missing row).
+- Expected outcome:
+  - New users will be inserted (if not present) with is_verified=0 and a verification token, then the OAuth callback will redirect to send_verification.php which uses the session's access token to send the verification email.
+  - Users will no longer be implicitly marked verified just because user_email exists in the session.
+- Next steps for you:
+  1. Deploy these two updated files.
+  2. Ensure your users table has columns: email, is_verified (TINYINT/BOOLEAN), verification_token (VARCHAR), created_at (DATETIME). If not present, add them.
+  3. Make sure the Gmail API credentials and the OAuth consent (scopes) are correctly configured and that the token session contains a valid access token for sending mail. If you hit Gmail API quota or permission issues, check token.json or re-consent.
+  4. Test the flow:
+     - Sign in with Google as a new user → oauth2callback should create the DB row and redirect to send_verification.php → you should see the verification-sent page and receive the email with the token link.
+     - Click verify link → verify.php should mark is_verified in DB and the session flow should allow normal booking.
+- If you want, I can also:
+  - Provide a small SQL ALTER statement to ensure the users table has the required columns.
+  - Modify send_verification.php to show a helpful error page if access_token is missing (instead of silent redirect).
+  - Add logging/troubleshooting helpers to capture Gmail API errors.
+
+Would you like me to add a DB ALTER statement and/or update send_verification.php to show clearer errors when access token is absent?
